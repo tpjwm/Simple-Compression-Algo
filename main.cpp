@@ -1,0 +1,91 @@
+#include <iostream>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <vector>
+#include <sstream>
+#include <regex>
+
+
+std::map<std::string, unsigned short> findMostCommonWords(std::string &text){
+    std::map<std::string, unsigned short> mostCommonWords;
+    std::vector<std::string> tokens;
+
+    //split string and tokenize based on spaces
+    std::istringstream iss(text);
+    copy(std::istream_iterator<std::string>(iss),
+         std::istream_iterator<std::string>(),
+         std::back_inserter(tokens));
+
+    for (const std::string& c : tokens) {
+        if(mostCommonWords.find(c) == mostCommonWords.end()){
+            mostCommonWords.insert(std::pair<std::string, unsigned short>(c, 1));
+        }
+        else{
+            mostCommonWords.at(c)++;
+        }
+    }
+    return mostCommonWords;
+}
+
+/**
+ * Compresses text and returns compressed text. Compresses by finding duplicate words and replacing with single character
+ * placeholders. Limited currently to 32 duplicates / characters.
+ * @param originalText is the original text without compression
+ * @param commonWords vector of duplicates sorted by most common to least common
+ * @return
+ */
+std::string getCompressedText(const std::string &originalText, const std::vector<std::string>  &commonWords){
+    std::string compressedText = originalText;
+    size_t counter = 0;
+    for(const auto & word: commonWords){
+        compressedText = std::regex_replace(compressedText, std::regex(word), std::string{static_cast<char>(counter)}); // replace 'word.first' -> '1'
+        counter++;
+    }
+    return compressedText;
+}
+
+/**
+ * Reverses compression and replaces symbols with the original words.
+ * @param compressedText is the compressed text containing symbols / characters
+ * @param commonWords vector of duplicates sorted by most common to least common
+ * @return
+ */
+std::string getUncompressedText(const std::string &compressedText, const std::vector<std::string> &commonWords){
+    std::string uncompressedText = compressedText;
+    size_t counter = 0;
+    for(const auto & word: commonWords){
+        uncompressedText = std::regex_replace(uncompressedText, std::regex(std::string{static_cast<char>(counter)}), word); // replace '1' -> 'word.first'
+        counter++;
+    }
+    return uncompressedText;
+}
+int main() {
+    std::string text = "In a man-cave there lived a brilliant, sly man named Detective Jenkins. Not a lonely depressed, scary man-cave, filled with riches and a foul smell, nor yet a cold, bare, productive man-cave with nothing in it to sit down on or to eat on. It was a manly man-cave, and that means procrastination. One day, after a troubling visit from the accountant Giga Watson, Detective Jenkins leaves his man-cave and sets out in search of three golden fedoras. A quest undertaken in the company of a businessman, a dog and a tall woman. In the search for the feminist-guarded fedoras, Detective Jenkins surprises even himself with his agility and skill as a dog food taster. During his travels, Jenkins rescues a goblet, an heirloom belonging to Giga Watson. But when Giga Watson refuses to try opium, their friendship is over. However, Giga Watson is badly injured at the Great Battle of '99 and the two reconcile just before Detective Jenkins engages in some serious opium smoking. Detective Jenkins accepts one of the three golden fedoras and returns to his cave a very wealthy and changed man.";
+    std::cout << "Original string size: " << text.size() << " bytes" << std::endl;
+    std::cout << "Original string: " << text << std::endl;
+
+
+    std::map<std::string, unsigned short> mostCommonWords = findMostCommonWords(text);
+
+    std::vector<std::string> dupesWithCounts;
+    for(const auto & mostCommonWord : mostCommonWords)
+    {
+        if(mostCommonWord.second >= 2) //only stores data for duplicates
+            dupesWithCounts.emplace_back(mostCommonWord.first);
+    }
+    if(dupesWithCounts.size() > 32){
+        std::cout << std::endl << "Can't compress, too many duplicates (must be 32 or less)" << std::endl;
+        return 0;
+    }
+
+    std::string compressed = getCompressedText(text, dupesWithCounts);
+    std::cout << "String size compressed: " << compressed.size() << " bytes" << std::endl;
+    std::cout << "String compressed: " << compressed << std::endl;
+
+    std::string uncompressed = getUncompressedText(compressed, dupesWithCounts);
+    std::cout << "String size uncompressed: " << uncompressed.size() << " bytes" << std::endl;
+    std::cout << "String uncompressed: " << uncompressed << std::endl;
+
+    return 0;
+}

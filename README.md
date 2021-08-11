@@ -1,13 +1,18 @@
 # Simple Compression Algorithm
-This is just an experimentation with compressing simple text.
-There are severe limitation to this as it can only compress 32 unique duplicates 
-(because of the hacky way I use chars to replace duplicates).
+This is an experimentation with compressing simple text.
 
-### Efficiency - or lack thereof
-With the current text that is inside the repository, it is compressed from 1093 bytes, 
-to 898 bytes. But as the vector of string duplicates are also needed to uncompress, those
-are also added to the compressed byte count (as realistically that would have to be saved somewhere).
-Taking the total compressed bytes to about 1002. Meaning if this sample is to be taken as the average, 
-this algorithm compresses text to about 91% of its original size.
+Compresses any string to about 1 byte per occurrence for text with less than 160 duplicate values,
+compresses to about 2 bytes per occurrence for text with less than 65535 duplicate values (but greater than 160).  
 
-Compressing this file in Windows 10, compresses it to about 63%. So there is definitely room for improvement. 
+The ultimate limitation
+is 65,535 duplicates as anything more will probably not be compressed enough to be worth it.
+
+### Efficiency 
+As with any compression, it is difficult to calculate efficiency without knowing how many duplicates of strings will be 
+contained in the text.   
+Obviously, the more duplicates, and the larger the size of those duplicates in characters, the more efficient this 
+algorithm will be.  
+
+**One thing that is effectively guaranteed is that the compressed file will never be larger than the original.**  
+
+The same cannot be said about the standard compression found on Windows 10, which sometimes makes compressed text (especially text with few duplicate values) larger when zipped.
